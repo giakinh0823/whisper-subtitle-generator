@@ -9,6 +9,9 @@ import glob
 from datetime import datetime
 import sys
 
+import imageio_ffmpeg
+
+
 def format_timestamp(seconds, always_include_hours=False):
     """
     Convert seconds to SRT timestamp format (HH:MM:SS,mmm)
@@ -43,6 +46,11 @@ def extract_audio(video_path, audio_path, logger=None):
     Returns:
         bool: True if successful, False otherwise
     """
+    if not check_ffmpeg_installed():
+        if logger:
+            logger("FFmpeg not found. Please install FFmpeg and make sure it's in your PATH.")
+        return False
+
     try:
         subprocess.run(
             [
@@ -58,10 +66,6 @@ def extract_audio(video_path, audio_path, logger=None):
     except subprocess.CalledProcessError as e:
         if logger:
             logger(f"Error extracting audio from {video_path}: {e}")
-        return False
-    except FileNotFoundError:
-        if logger:
-            logger("FFmpeg not found. Please install FFmpeg and make sure it's in your PATH.")
         return False
 
 
@@ -272,7 +276,6 @@ def get_supported_video_files(directory):
 
     return video_files
 
-
 def check_ffmpeg_installed():
     """
     Check if FFmpeg is installed and available
@@ -290,7 +293,6 @@ def check_ffmpeg_installed():
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-
 
 def log_with_timestamp(message, log_file=None):
     """

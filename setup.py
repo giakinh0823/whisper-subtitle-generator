@@ -22,19 +22,19 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "Topic :: Multimedia :: Sound/Audio :: Speech",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.12",
     install_requires=[
         "openai-whisper>=20230314",
         "torch>=2.0.0",
         "tqdm>=4.64.0",
         "numpy>=1.20.0",
         "PyAudio>=0.2.11",
+        "ffmpeg-python>=0.2.0",
+        "imageio-ffmpeg>=0.6.0"
     ],
     entry_points={
         "console_scripts": [
