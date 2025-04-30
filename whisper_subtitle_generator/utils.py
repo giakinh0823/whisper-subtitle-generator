@@ -9,9 +9,6 @@ import glob
 from datetime import datetime
 import sys
 
-import imageio_ffmpeg
-
-
 def format_timestamp(seconds, always_include_hours=False):
     """
     Convert seconds to SRT timestamp format (HH:MM:SS,mmm)
