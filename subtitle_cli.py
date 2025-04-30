@@ -546,8 +546,8 @@ if __name__ == "__main__":
     main()
 
 # example:
-#  python main_cli.py --input_folder '/path/to/videos' --output_folder ./subtitles --model_name large-v3 --translate --target_language vi
+#  python subtitle_cli.py --input_folder '/path/to/videos' --output_folder ./subtitles --model_name large-v3 --translate --target_language vi
 
 # example:
-#  python main_cli.py --input_folder '/Users/hagiakinh/Data/Study/DSA & AL/NeetCode - Algorithms & Data Structures for Beginners/01 ABOUT' --output_folder ./subtitles --model_name large-v3
-# python main_cli.py --input_folder '/Users/hagiakinh/Data/Study/DSA & AL/NeetCode - Algorithms & Data Structures for Beginners/01 ABOUT' --output_folder ./subtitles --model_name large-v3 --translate --target_language vi
+#  python subtitle_cli.py --input_folder '/Users/hagiakinh/Data/Study/DSA & AL/NeetCode - Algorithms & Data Structures for Beginners/01 ABOUT' --output_folder ./subtitles --model_name large-v3
+# python subtitle_cli.py --input_folder '/Users/hagiakinh/Data/Study/DSA & AL/NeetCode - Algorithms & Data Structures for Beginners/01 ABOUT' --output_folder ./subtitles --model_name large-v3 --translate --target_language vi
