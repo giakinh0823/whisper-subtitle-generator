@@ -35,6 +35,7 @@ class WhisperGUI:
         self.input_type = tk.StringVar(value="folder")
         self.input_path = tk.StringVar()
         self.output_path = tk.StringVar()
+        self.use_input_folder_as_output = tk.BooleanVar(value=True)
         self.model_name = tk.StringVar(value="base")
         self.translate = tk.BooleanVar(value=False)
         self.target_language = tk.StringVar(value="vi")
@@ -60,29 +61,79 @@ class WhisperGUI:
         self.create_log_section(main_frame)
 
         # Initialize paths
-        self.output_path.set(os.path.join(os.path.expanduser("~"), "Documents", "Subtitles"))
+        default_output = os.path.join(os.path.expanduser("~"), "Documents", "Subtitles")
+        self.output_path.set(default_output)
+
+        # Add event binding for input path changes
+        self.input_path.trace_add("write", self.on_input_path_change)
+
+        # Add binding for the use_input_folder checkbox
+        self.use_input_folder_as_output.trace_add("write", self.on_use_input_folder_change)
+
+    def on_input_path_change(self, *args):
+        """Update output path when input path changes, if the option is selected"""
+        if self.use_input_folder_as_output.get() and self.input_path.get():
+            if self.input_type.get() == "folder":
+                self.output_path.set(self.input_path.get())
+            else:
+                # For file input, use the parent directory
+                self.output_path.set(os.path.dirname(self.input_path.get()))
+
+    def on_use_input_folder_change(self, *args):
+        """Handle toggle of using input folder as output"""
+        if self.use_input_folder_as_output.get() and self.input_path.get():
+            if self.input_type.get() == "folder":
+                self.output_path.set(self.input_path.get())
+            else:
+                # For file input, use the parent directory
+                self.output_path.set(os.path.dirname(self.input_path.get()))
+            # Disable the output path entry and browse button
+            self.output_entry.config(state="disabled")
+            self.output_browse_button.config(state="disabled")
+        else:
+            # Enable the output path entry and browse button
+            self.output_entry.config(state="normal")
+            self.output_browse_button.config(state="normal")
 
     def create_input_section(self, parent):
         input_frame = ttk.LabelFrame(parent, text="Input", padding="10")
         input_frame.pack(fill=tk.X, padx=5, pady=5)
 
         # Input type selection
-        ttk.Radiobutton(input_frame, text="Folder", variable=self.input_type, value="folder").grid(row=0, column=0,
-                                                                                                   sticky="w")
-        ttk.Radiobutton(input_frame, text="File", variable=self.input_type, value="file").grid(row=0, column=1,
-                                                                                               sticky="w")
+        input_type_frame = ttk.Frame(input_frame)
+        input_type_frame.grid(row=0, column=0, columnspan=3, sticky="w", pady=5)
+
+        ttk.Radiobutton(input_type_frame, text="Folder", variable=self.input_type, value="folder",
+                        command=self.update_input_type).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Radiobutton(input_type_frame, text="File", variable=self.input_type, value="file",
+                        command=self.update_input_type).pack(side=tk.LEFT)
 
         # Input path
         ttk.Label(input_frame, text="Input Path:").grid(row=1, column=0, sticky="w", pady=5)
         ttk.Entry(input_frame, textvariable=self.input_path, width=50).grid(row=1, column=1, sticky="ew", padx=5)
         ttk.Button(input_frame, text="Browse", command=self.browse_input).grid(row=1, column=2, padx=5)
 
+        # Output options
+        ttk.Checkbutton(input_frame, text="Use input folder as output location",
+                        variable=self.use_input_folder_as_output).grid(row=2, column=0, columnspan=3, sticky="w",
+                                                                       pady=5)
+
         # Output path
-        ttk.Label(input_frame, text="Output Path:").grid(row=2, column=0, sticky="w", pady=5)
-        ttk.Entry(input_frame, textvariable=self.output_path, width=50).grid(row=2, column=1, sticky="ew", padx=5)
-        ttk.Button(input_frame, text="Browse", command=self.browse_output).grid(row=2, column=2, padx=5)
+        ttk.Label(input_frame, text="Output Path:").grid(row=3, column=0, sticky="w", pady=5)
+        self.output_entry = ttk.Entry(input_frame, textvariable=self.output_path, width=50,
+                                      state="disabled" if self.use_input_folder_as_output.get() else "normal")
+        self.output_entry.grid(row=3, column=1, sticky="ew", padx=5)
+        self.output_browse_button = ttk.Button(input_frame, text="Browse", command=self.browse_output,
+                                               state="disabled" if self.use_input_folder_as_output.get() else "normal")
+        self.output_browse_button.grid(row=3, column=2, padx=5)
 
         input_frame.columnconfigure(1, weight=1)
+
+    def update_input_type(self):
+        """Update UI based on input type selection"""
+        if self.input_path.get():
+            # Update output path based on new input type if use_input_folder is enabled
+            self.on_input_path_change()
 
     def create_model_section(self, parent):
         model_frame = ttk.LabelFrame(parent, text="Model Settings", padding="10")
@@ -204,12 +255,16 @@ class WhisperGUI:
             messagebox.showerror("Error", "Please select an input path.")
             return
 
-        if not self.output_path.get():
-            messagebox.showerror("Error", "Please select an output path.")
-            return
+        # Determine output path
+        output_path = self.input_path.get() if self.use_input_folder_as_output.get() else self.output_path.get()
+        if self.input_type.get() == "file" and self.use_input_folder_as_output.get():
+            output_path = os.path.dirname(self.input_path.get())
 
         # Create output directory if it doesn't exist
-        os.makedirs(self.output_path.get(), exist_ok=True)
+        os.makedirs(output_path, exist_ok=True)
+
+        # Update output path display
+        self.output_path.set(output_path)
 
         # Start processing in a separate thread
         self.processing = True
@@ -423,8 +478,20 @@ class WhisperGUI:
         if not self.processing:
             return False
 
+        # Determine the output folder
+        if self.use_input_folder_as_output.get():
+            if os.path.isdir(video_path):  # This should never happen, but just in case
+                output_folder = video_path
+            else:
+                output_folder = os.path.dirname(video_path)
+        else:
+            output_folder = self.output_path.get()
+
+        # Make sure output folder exists
+        os.makedirs(output_folder, exist_ok=True)
+
         base_name = os.path.splitext(os.path.basename(video_path))[0]
-        audio_path = os.path.join(self.output_path.get(), f"{base_name}.wav")
+        audio_path = os.path.join(output_folder, f"{base_name}.wav")
 
         # Update UI
         self.current_file.set(os.path.basename(video_path))
@@ -459,7 +526,7 @@ class WhisperGUI:
 
             # Create subtitle file for original transcription
             subtitle_format = self.subtitle_format.get()
-            subtitle_path = os.path.join(self.output_path.get(), f"{base_name}.{subtitle_format}")
+            subtitle_path = os.path.join(output_folder, f"{base_name}.{subtitle_format}")
 
             if subtitle_format == "srt":
                 self.write_srt(result["segments"], subtitle_path,
@@ -479,7 +546,7 @@ class WhisperGUI:
             # Create subtitle file for translation if requested
             if self.translate.get():
                 target_lang = self.target_language.get()
-                translation_path = os.path.join(self.output_path.get(),
+                translation_path = os.path.join(output_folder,
                                                 f"{base_name}.{target_lang}.{subtitle_format}")
 
                 if subtitle_format == "srt":
