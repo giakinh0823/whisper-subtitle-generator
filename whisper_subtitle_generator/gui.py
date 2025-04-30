@@ -217,7 +217,7 @@ class WhisperGUI:
 
         # Model selection
         ttk.Label(model_frame, text="Model:").grid(row=0, column=0, sticky="w", pady=5)
-        models = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3"]
+        models = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3", "turbo"]
         ttk.Combobox(model_frame, textvariable=self.model_name, values=models, state="readonly").grid(row=0, column=1,
                                                                                                       sticky="ew",
                                                                                                       padx=5)
